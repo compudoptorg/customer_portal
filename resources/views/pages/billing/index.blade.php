@@ -108,6 +108,9 @@
             <div class="card-body text-center mb-4 mt-5">
                <div class="row justify-content-center">
                   <div class="col-12 col-xl-10">
+                     <h6 class="card-title text-uppercase text-muted mb-2">
+                           Customer #{{$values['account_id']}}
+                     </h6>
                      <!-- Title -->
                      <h2 class="mb-4 mt-4">
                         Equipment Status
