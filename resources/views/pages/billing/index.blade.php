@@ -104,6 +104,23 @@
             </div>
          </div>
          @endif
+         <div class="card">
+            <div class="card-body text-center mb-4 mt-5">
+               <div class="row justify-content-center">
+                  <div class="col-12 col-xl-10">
+                     <!-- Title -->
+                     <h2 class="mb-4 mt-4">
+                        Equipment Status
+                     </h2>
+                     <!-- Button -->
+                     <a href="https://google.com/" class="btn btn-white">
+                        Equipment looks good
+                     </a>
+                  </div>
+               </div>
+               <!-- / .row -->
+            </div>
+         </div>
       </div>
       <div class="col-12 col-xl-8">
          <div class="row">
