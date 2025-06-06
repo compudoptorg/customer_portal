@@ -4,8 +4,8 @@ services:
     build:
       context: .
       dockerfile: Dockerfile
-    image: sonarsoftware/customerportal:next
-    container_name: sonar-customerportal
+    image: compudoptorg/customer_portal:next
+    container_name: sonar-compudopt-customerportal
     restart: always
     tty: true
     ports:
@@ -42,7 +42,7 @@ services:
 #    restart: always
 #    volumes:
 #      - /var/run/docker.sock:/var/run/docker.sock
-#    command: sonar-customerportal
+#    command: sonar-compudopt-customerportal
 
 volumes:
   storage:
