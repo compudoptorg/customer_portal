@@ -117,7 +117,7 @@
                      </h2>
                      <!-- Button -->
                      <a href="https://google.com/" class="btn btn-white">
-                        Equipment looks good
+                        Equipment looks good!
                      </a>
                   </div>
                </div>
