@@ -70,6 +70,19 @@
             @endif
 
          </ul>
+         <h6 class="navbar-heading text-muted mt-4">
+            {{utrans("nav.help")}}
+         </h6>
+         <ul class="navbar-nav">
+            <li class="nav-item">
+               <a class="nav-link" href="tel:+18555325060">
+                  <i class="fe fe-phone"></i> (855) 532-5060</a>
+            </li>
+            <li class="nav-item">
+               <a class="nav-link" href="https://www.compudopt.org/tech-support" target="_blank" rel="noopener noreferrer">
+                  <i class="fe fe-life-buoy"></i> {{utrans("nav.techSupport")}}</a>
+            </li>
+         </ul>
          <div class="navbar-user mt-auto d-none d-md-flex">
             <div class="dropup">
                <a href="#sidebarDropup" id="sidebarIconCopy" class="dropdown-toggle" role="button" data-bs-toggle="dropdown" aria-haspopup="true" aria-expanded="false">

@@ -9,4 +9,6 @@ return [
     'dataUsage' => 'Uso de Datos',
     'contracts' => 'Contratos',
     'myService' => 'MI SERVICIO',
+    'help' => 'AYUDA',
+    'techSupport' => 'Soporte Técnico',
 ];
