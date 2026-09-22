@@ -38,6 +38,13 @@
          </form>
       </section>
    </div>
+   <small style="position: fixed; bottom: 16px; right: 16px; margin: 0; color: #2b2d2f; font-size: 15px; white-space: nowrap;">
+      <a href="tel:+18555325060" style="color: #2b2d2f;">(855) 532-5060</a>
+      &nbsp;&middot;&nbsp;
+      <a href="https://www.compudopt.org/tech-support" target="_blank" rel="noopener noreferrer" style="color: #2b2d2f;">{{trans("nav.techSupport",[],$language)}}</a>
+      &nbsp;&middot;&nbsp;
+      {{str_replace("\n", ' · ', trans('nav.techSupportHours',[],$language))}}
+   </small>
 </body>
 <script nonce="{{ csp_nonce() }}">
 window.onbeforeunload = function(e){

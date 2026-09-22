@@ -11,4 +11,5 @@ return [
     'myService' => 'MY SERVICE',
     'help' => 'HELP',
     'techSupport' => 'Tech Support',
+    'techSupportHours' => "Monday - Saturday\n9 a.m. - 6 p.m. (Central Time)",
 ];

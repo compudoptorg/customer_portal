@@ -81,6 +81,9 @@
             <li class="nav-item">
                <a class="nav-link" href="https://www.compudopt.org/tech-support" target="_blank" rel="noopener noreferrer">
                   <i class="fe fe-life-buoy"></i> {{utrans("nav.techSupport")}}</a>
+               <div class="text-muted small" style="padding-left: 2.75rem;">
+                  {!! nl2br(e(utrans('nav.techSupportHours'))) !!}
+               </div>
             </li>
          </ul>
          <div class="navbar-user mt-auto d-none d-md-flex">
