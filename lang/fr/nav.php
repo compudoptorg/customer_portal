@@ -7,7 +7,7 @@ return [
     'profile' => 'Mes coordonnées',
     'tickets' => 'Billets de soutien',
     'dataUsage' => 'Utilisation de données',
-    'contracts' => 'Contrats',
+    'contracts' => 'Accords',
     'myService' => 'MON SERVICE',
     'help' => 'AIDE',
     'techSupport' => 'Support Technique',
