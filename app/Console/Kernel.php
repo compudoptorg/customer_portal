@@ -15,9 +15,6 @@ class Kernel extends ConsoleKernel
         $schedule->command('sonar:deleteexpiredtokens')->hourly()->withoutOverlapping();
 
         $schedule->command('cache:prune-stale-tags')->hourly();
-
-        // Retry activation of Pending Payment accounts (no-op unless PENDING_PAYMENT_STATUS_ID is set).
-        $schedule->command('sonar:activate-pending-accounts')->everyTenMinutes()->withoutOverlapping();
     }
 
     /**

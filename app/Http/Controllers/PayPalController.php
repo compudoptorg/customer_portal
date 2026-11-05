@@ -3,7 +3,6 @@
 namespace App\Http\Controllers;
 
 use App\PaypalTemporaryToken;
-use App\Services\PendingAccountActivator;
 use Exception;
 use Illuminate\Http\Request;
 use Illuminate\View\Factory;
@@ -159,9 +158,6 @@ class PayPalController extends Controller
 
         $billingController = new BillingController;
         $billingController->clearBillingCache();
-
-        // Activate the account if this paid its first invoice. Never throws.
-        app(PendingAccountActivator::class)->activateIfFirstInvoicePaid((int) get_user()->account_id);
 
         return view('pages.paypal.success');
     }

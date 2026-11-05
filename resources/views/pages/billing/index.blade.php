@@ -53,20 +53,6 @@
 </div>
 <!-- / .header -->
 <div class="container-fluid mt--6">
-   @if(!empty($pendingPayment))
-   <div class="row">
-      <div class="col-12">
-         <div class="alert alert-warning d-flex flex-wrap align-items-center justify-content-between" role="alert" id="pendingPaymentNotice">
-            <span class="h4 mb-0 mr-3">
-               <i class="fe fe-alert-triangle mr-2"></i>{{ utrans("billing.pendingPaymentNotice") }}
-            </span>
-            <a href="{{action([\App\Http\Controllers\BillingController::class, 'makePayment'])}}" class="btn btn-white mt-2 mt-md-0">
-               {{ utrans("billing.payNow") }}
-            </a>
-         </div>
-      </div>
-   </div>
-   @endif
    <div class="row">
       <div class="col-12 col-xl-4">
          @if($values['amount_due'] > 0)
