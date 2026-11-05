@@ -20,6 +20,7 @@ class PendingAccountActivator
     public const RESULT_DISABLED = 'disabled';
     public const RESULT_NOT_PENDING = 'not_pending';
     public const RESULT_STILL_OWED = 'still_owed';
+    public const RESULT_NO_INVOICE = 'no_invoice';
     public const RESULT_ACTIVATED = 'activated';
     public const RESULT_ERROR = 'error';
 
@@ -83,7 +84,18 @@ GRAPHQL;
                 return self::RESULT_NOT_PENDING;
             }
 
-            $owed = $this->invoicesStillOwed($accountId);
+            [$owed, $paidCount] = $this->invoiceStatus($accountId);
+
+            // No invoice yet: registration creates the account a few seconds before its invoice,
+            // and leaves the account pending with no invoice if invoicing fails. Neither is paid.
+            if ($owed === [] && $paidCount === 0) {
+                if (!$quiet) {
+                    Log::info('Pending account not activated: it has no invoice yet.', ['account_id' => $accountId]);
+                }
+
+                return self::RESULT_NO_INVOICE;
+            }
+
             if ($owed !== []) {
                 if (!$quiet) {
                     Log::info('Pending account not activated: invoices still owed.', [
@@ -150,11 +162,13 @@ GRAPHQL;
     }
 
     /**
-     * @return int[] IDs of non-void invoices with a remaining balance.
+     * @return array{0: int[], 1: int} IDs of non-void invoices with a remaining balance, and the number of
+     *                                  non-void invoices that are fully paid.
      */
-    private function invoicesStillOwed(int $accountId): array
+    private function invoiceStatus(int $accountId): array
     {
         $owed = [];
+        $paidCount = 0;
         foreach ($this->paginate(self::INVOICES_QUERY, 'invoices', ['id' => $accountId]) as $invoice) {
             if (!array_key_exists('remaining_due', $invoice)) {
                 throw new RuntimeException('Invoice without remaining_due in Sonar response.');
@@ -164,10 +178,12 @@ GRAPHQL;
             }
             if ((float) $invoice['remaining_due'] > 0) {
                 $owed[] = (int) $invoice['id'];
+            } else {
+                $paidCount++;
             }
         }
 
-        return $owed;
+        return [$owed, $paidCount];
     }
 
     private function updateAccount(int $accountId, array $input): array

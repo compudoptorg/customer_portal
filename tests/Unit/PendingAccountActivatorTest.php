@@ -115,6 +115,31 @@ class PendingAccountActivatorTest extends TestCase
         Log::shouldHaveReceived('info')->withArgs(fn ($msg, $ctx) => $ctx['invoice_ids'] === [2])->once();
     }
 
+    /**
+     * Registration creates the account seconds before its invoice, and leaves it pending with no invoice
+     * if invoicing fails. The scheduled retry must not activate such an account for free.
+     *
+     * @dataProvider noPaidInvoiceProvider
+     */
+    public function testAccountWithoutAPaidInvoiceStaysPending(array $invoices): void
+    {
+        $result = $this->activator([
+            self::account(self::PENDING),
+            self::invoices($invoices),
+        ])->activateIfFirstInvoicePaid(self::ACCOUNT);
+
+        $this->assertSame(PendingAccountActivator::RESULT_NO_INVOICE, $result);
+        $this->assertCount(2, $this->history, 'no updateAccount mutation must be sent');
+    }
+
+    public static function noPaidInvoiceProvider(): array
+    {
+        return [
+            'no invoices' => [[]],
+            'only voided invoices' => [[['id' => 1, 'remaining_due' => 0, 'void' => true]]],
+        ];
+    }
+
     public function testFullyPaidActivatesAndClearsTheBillingCache(): void
     {
         Cache::tags('billing.details')->put(self::ACCOUNT, 'stale', 600);
