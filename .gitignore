@@ -10,3 +10,5 @@ storage/database.sqlite
 
 /.phpunit.cache
 /nbproject/private/
+
+CHANGES.md

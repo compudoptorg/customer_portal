@@ -126,23 +126,25 @@
             </div>
          </div>
          <div class="row">
-            <div class="col-auto">
-               <!-- Toggle -->
+            <div class="col-12 col-lg-4">
+               <!-- Autopay selection (required) -->
                <div class="form-group">
-                  <div class="custom-control custom-checkbox-toggle mt-1">
-                     {!! Form::checkbox("auto",1,false,['id' => 'auto', 'class' => 'custom-control-input']) !!}
-                     <label class="custom-control-label" for="auto"></label>
-                  </div>
+                  <label for="auto">{{utrans("billing.autoPay")}}</label>
+                  <select name="auto" id="auto" class="form-control" required>
+                     <option value="" disabled @if(old('auto') === null) selected @endif>{{utrans("billing.autoPaySelect")}}</option>
+                     <option value="1" @if(old('auto') === '1') selected @endif>{{utrans("billing.autoPayYes")}}</option>
+                     <option value="0" @if(old('auto') === '0') selected @endif>{{utrans("billing.autoPayNo")}}</option>
+                  </select>
                </div>
             </div>
-            <div class="col mt-1">
-               {!! utrans("billing.saveAsAutoPayMethod") !!}
+            <div class="col-12 col-lg-8 mt-lg-4">
+               {!! utrans("billing.saveAsAutoPayMethodSelect") !!}
             </div>
          </div>
       </div>
    </div>
    <br>
-   <div class="row">
+   <div class="row mb-5 pb-4">
       <div class="col-12 col-md-12">
          <input type="hidden" name="payment_tracker_id" value="{{uniqid("", true)}}" />
          <button type="submit" class="btn btn-primary">{{utrans("billing.addNewCard")}}</button>

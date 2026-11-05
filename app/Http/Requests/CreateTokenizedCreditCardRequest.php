@@ -24,7 +24,7 @@ class CreateTokenizedCreditCardRequest extends FormRequest
             'token' => 'required|string',
             'identifier' => 'required|string',
             'expirationDate' => 'required|string', //this has the / separator in it
-            'auto' => 'boolean',
+            'auto' => 'required|in:0,1',
             'line1' => 'required|string',
             'city' => 'required|string',
             'state' => 'string',
