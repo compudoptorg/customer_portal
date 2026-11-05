@@ -156,13 +156,17 @@ return [
     /**
      * MANUAL FIRST INVOICES (registration flow)
      *
-     * Paying customers are created by the registration site with the "Pending Payment"
-     * account status. Once their first invoice is paid through the portal, the portal
-     * switches them to the active status via Sonar's GraphQL API.
-     * Leave PENDING_PAYMENT_STATUS_ID empty to disable all of this.
+     * Paying customers are created by the registration site with the "WaitingonFirstPayment"
+     * account status. Once their first invoice is paid, the portal adds the monthly plan (for
+     * monthly customers) and switches them to Active via Sonar's GraphQL API.
+     * Leave SONAR_GRAPHQL_TOKEN empty to disable all of this.
+     *
+     * The IDs below are fixed records in Compudopt's Sonar, so they live here, not in .env.
      */
     'sonar_graphql_url' => env('SONAR_GRAPHQL_URL'),
     'sonar_graphql_token' => env('SONAR_GRAPHQL_TOKEN'),
-    'pending_payment_status_id' => env('PENDING_PAYMENT_STATUS_ID') ? (int) env('PENDING_PAYMENT_STATUS_ID') : null,
-    'active_status_id' => (int) env('ACTIVE_STATUS_ID', 1),
+    'pending_payment_status_id' => 9,       // account status "WaitingonFirstPayment" (same as the registration site)
+    'active_status_id' => 1,                // account status "Active"
+    'monthly_service_id' => 3,              // "Monthly 5G Home Internet", added at activation
+    'first_month_debit_service_id' => 4,    // "Adjustment Debit", used for the "First month - ..." charge
 ];
