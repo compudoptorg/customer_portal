@@ -152,4 +152,17 @@ return [
      * PASSWORD STRENGTH
      */
     'password_strength_required' => env('PASSWORD_STRENGTH_REQUIRED', 2),
+
+    /**
+     * MANUAL FIRST INVOICES (registration flow)
+     *
+     * Paying customers are created by the registration site with the "Pending Payment"
+     * account status. Once their first invoice is paid through the portal, the portal
+     * switches them to the active status via Sonar's GraphQL API.
+     * Leave PENDING_PAYMENT_STATUS_ID empty to disable all of this.
+     */
+    'sonar_graphql_url' => env('SONAR_GRAPHQL_URL'),
+    'sonar_graphql_token' => env('SONAR_GRAPHQL_TOKEN'),
+    'pending_payment_status_id' => env('PENDING_PAYMENT_STATUS_ID') ? (int) env('PENDING_PAYMENT_STATUS_ID') : null,
+    'active_status_id' => (int) env('ACTIVE_STATUS_ID', 1),
 ];

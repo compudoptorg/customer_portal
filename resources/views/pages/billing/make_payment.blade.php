@@ -48,9 +48,15 @@
             </div>
          </div>
 
+         @if($highlightInvoice)
+         <div class="alert alert-warning" role="alert" id="highlightInvoiceNotice">
+            {{ utrans("billing.payInvoiceToActivate", ["invoice" => $highlightInvoice->id]) }}
+         </div>
+         @endif
+
          {!! Form::open(['action' => '\App\Http\Controllers\BillingController@submitPayment','id' => 'paymentForm','class' => 'mb-4','autocomplete' => 'on']) !!}
 
-         <!-- Expandable invoices table  -->
+         <!-- Expandable invoices table (expanded when an invoice is highlighted) -->
          @if($invoices != [])
          <div class=" row">
             <div class="col-12 col-md-8">
@@ -60,11 +66,11 @@
                         <i class="fe fe-inbox mr-3"></i>{{utrans("headers.invoices")}}
                      </h4>
                      <span id="toggleInvoices" class="btn btn-sm btn-primary float-right" style="flex: none;">
-                        <span class="show-text"> {{utrans("billing.show")}} </span>
-                        <span class="hide-text" style="display: none;"> {{utrans("billing.hide")}} </span>
+                        <span class="show-text" @if($highlightInvoice) style="display: none;" @endif> {{utrans("billing.show")}} </span>
+                        <span class="hide-text" @unless($highlightInvoice) style="display: none;" @endunless> {{utrans("billing.hide")}} </span>
                      </span>
                   </div>
-                  <div class="table-responsive invoicesTable ">
+                  <div class="table-responsive invoicesTable @if($highlightInvoice) expanded @endif">
                      <table class="table table-sm card-table">
                         <thead>
                            <tr>
@@ -87,7 +93,7 @@
                         </thead>
                         <tbody>
                            @foreach($invoices as $invoice)
-                           <tr>
+                           <tr @if($highlightInvoice && $invoice->id == $highlightInvoice->id) class="table-warning font-weight-bold" id="highlightedInvoice" @endif>
                               <td>
                                  {{ Formatter::date($invoice->date, false) }}
                               </td>
@@ -239,7 +245,7 @@
                   <label>
                      {{utrans("billing.amountToPay")}} {{ isset($additionalPaymentInformation['transaction_currency']) ? '(' . $additionalPaymentInformation['transaction_currency'] . ')' : '' }}
                   </label>
-                  {!! Form::number("amount",number_format($billingDetails->balance_due,2,".",""),['id' => 'amount', 'class' => 'form-control', 'step' => 'any', 'required' => true]) !!}
+                  {!! Form::number("amount",number_format($prefillAmount,2,".",""),['id' => 'amount', 'class' => 'form-control', 'step' => 'any', 'required' => true]) !!}
                </div>
             </div>
             <div class="col-auto new_card">
