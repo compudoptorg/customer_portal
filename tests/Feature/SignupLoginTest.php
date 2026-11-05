@@ -11,7 +11,7 @@ use SonarSoftware\CustomerPortalFramework\Exceptions\AuthenticationException;
 use Tests\TestCase;
 use Tests\UsesInMemoryDatabase;
 
-class CudLoginTest extends TestCase
+class SignupLoginTest extends TestCase
 {
     use UsesInMemoryDatabase;
 
@@ -35,7 +35,7 @@ class CudLoginTest extends TestCase
 
     private function postCud(array $fields)
     {
-        return $this->post('/cudlogin', $fields + [
+        return $this->post('/signup-login', $fields + [
             'username' => 'jane@example.com',
             'password' => 'Passw0rdX',
         ]);
@@ -123,8 +123,8 @@ class CudLoginTest extends TestCase
     {
         $this->auth->shouldNotReceive('authenticateUser');
 
-        $this->post('/cudlogin', ['username' => 'jane@example.com'])->assertRedirect('/')->assertSessionHasErrors();
-        $this->post('/cudlogin', ['username' => ['x'], 'password' => 'y'])->assertRedirect('/')->assertSessionHasErrors();
+        $this->post('/signup-login', ['username' => 'jane@example.com'])->assertRedirect('/')->assertSessionHasErrors();
+        $this->post('/signup-login', ['username' => ['x'], 'password' => 'y'])->assertRedirect('/')->assertSessionHasErrors();
     }
 
     public function testThrottleIsApplied(): void
@@ -152,7 +152,7 @@ class CudLoginTest extends TestCase
         $response = $this->withSession([
             'authenticated' => true,
             'user' => (object) ['account_id' => 1, 'username' => 'old@example.com'],
-        ])->post('/cudlogin', ['username' => 'new@example.com', 'password' => 'Passw0rdX', 'invoice' => '7']);
+        ])->post('/signup-login', ['username' => 'new@example.com', 'password' => 'Passw0rdX', 'invoice' => '7']);
 
         $response->assertRedirect('/portal/billing/payment?invoice=7');
         $this->assertSame(999, session('user')->account_id);
@@ -163,6 +163,6 @@ class CudLoginTest extends TestCase
         $except = (new \ReflectionClass(VerifyCsrfToken::class))->getProperty('except');
         $except->setAccessible(true);
 
-        $this->assertContains('cudlogin', $except->getValue(app(VerifyCsrfToken::class)));
+        $this->assertContains('signup-login', $except->getValue(app(VerifyCsrfToken::class)));
     }
 }

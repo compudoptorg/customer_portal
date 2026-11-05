@@ -14,8 +14,6 @@ use App\Traits\ListsPaymentMethods;
 use Carbon\Carbon;
 use Exception;
 use Illuminate\Contracts\View\Factory;
-use App\Services\BillingCache;
-use App\Services\PendingAccountActivator;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Http\Response;
@@ -61,12 +59,6 @@ class BillingController extends Controller
     {
         $contact = $this->getContact();
         $accountDetails = $this->accountController->getAccountDetails(get_user()->account_id);
-        $pendingPayment = $this->isPendingPayment($accountDetails);
-        if ($pendingPayment) {
-            // Retry activation here too, in case the payment was applied after the post-payment check ran.
-            $result = app(PendingAccountActivator::class)->activateIfFirstInvoicePaid((int) get_user()->account_id, true);
-            $pendingPayment = $result !== PendingAccountActivator::RESULT_ACTIVATED;
-        }
         $billingDetails = $this->getAccountBillingDetails();
         $invoices = $this->getInvoices();
         $invoices = $this->paginate($invoices, 5, false, ['path' => '/portal/billing/invoices']);
@@ -116,7 +108,7 @@ class BillingController extends Controller
 
         return view(
             'pages.billing.index',
-            compact('values', 'invoices', 'transactions', 'paymentMethods', 'systemSetting', 'svgs', 'contact', 'pendingPayment')
+            compact('values', 'invoices', 'transactions', 'paymentMethods', 'systemSetting', 'svgs', 'contact')
         );
     }
 
@@ -147,7 +139,7 @@ class BillingController extends Controller
         $billingDetails = $this->getAccountBillingDetails();
         $paymentMethods = $this->generatePaymentMethodListForPaymentPage();
         if (count($paymentMethods) == 0) {
-            // Not redirect()->back(): after /cudlogin, "back" is the login page.
+            // Not redirect()->back(): after /signup-login, "back" is the login page.
             return redirect()
                 ->action([BillingController::class, 'index'])
                 ->withErrors(utrans('errors.addAPaymentMethod'));
@@ -173,7 +165,7 @@ class BillingController extends Controller
         $invoices = $this->getOutstandingAccountInvoices();
         $enabledPrimaryCreditCardProcessor = $this->accountController->getEnabledCreditCardProcessor(get_user()->account_id)[0] ?? null;
 
-        // ?invoice=ID (from /cudlogin): highlight it and pre-fill its amount, but only if it is one of
+        // ?invoice=ID (from /signup-login): highlight it and pre-fill its amount, but only if it is one of
         // this account's outstanding invoices. Anything else is silently ignored.
         $highlightInvoice = self::findOutstandingInvoice($invoices, $request->query('invoice'));
         $prefillAmount = $highlightInvoice !== null ? $highlightInvoice->remaining_due : $billingDetails->balance_due;
@@ -235,26 +227,6 @@ class BillingController extends Controller
     }
 
     /**
-     * Whether the account (v1 account details) is in the configured Pending Payment status.
-     */
-    private function isPendingPayment($accountDetails): bool
-    {
-        $pendingStatusId = config('customer_portal.pending_payment_status_id');
-
-        return $pendingStatusId !== null
-            && isset($accountDetails->account_status_id)
-            && (int) $accountDetails->account_status_id === (int) $pendingStatusId;
-    }
-
-    /**
-     * After a successful payment, activate the account if it was waiting on its first invoice. Never throws.
-     */
-    private function activatePendingAccountAfterPayment(): void
-    {
-        app(PendingAccountActivator::class)->activateIfFirstInvoicePaid((int) get_user()->account_id);
-    }
-
-    /**
      * Process a tokenized submitted payment
      */
     public function submitTokenizedPayment(TokenizedCreditCardPaymentRequest $request): RedirectResponse
@@ -282,8 +254,6 @@ class BillingController extends Controller
 
         $this->clearBillingCache();
         if ($result->success == true) {
-            $this->activatePendingAccountAfterPayment();
-
             return redirect()
                 ->action([BillingController::class, 'index'])
                 ->with('success', utrans('billing.paymentWasSuccessful'));
@@ -333,8 +303,6 @@ class BillingController extends Controller
 
         $this->clearBillingCache();
         if ($result->success == true) {
-            $this->activatePendingAccountAfterPayment();
-
             return redirect()
                 ->action([BillingController::class, 'index'])
                 ->with('success', utrans('billing.paymentWasSuccessful'));
@@ -869,7 +837,11 @@ class BillingController extends Controller
      */
     public function clearBillingCache(): void
     {
-        BillingCache::forget((int) get_user()->account_id);
+        Cache::tags('billing.details')->forget(get_user()->account_id);
+        Cache::tags('billing.invoices')->forget(get_user()->account_id);
+        Cache::tags('billing.transactions')->forget(get_user()->account_id);
+        Cache::tags('billing.payment_methods')->forget(get_user()->account_id);
+        Cache::tags('billing.outstanding_invoices')->forget(get_user()->account_id);
     }
 
     /**

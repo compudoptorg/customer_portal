@@ -58,8 +58,6 @@ return [
     'autoPayYes' => 'Yes, enable automatic payments',
     'autoPayNo' => 'No, do not enable automatic payments',
     'payInvoiceToActivate' => 'Pay invoice #:invoice to activate your service.',
-    'pendingPaymentNotice' => 'Your service will start once your first invoice is paid.',
-    'payNow' => 'Pay now',
     'addNewCard' => 'Add new credit card',
     'cardAdded' => 'Card added successfully.',
     'paymentToCompany' => 'Payment to :company_name',

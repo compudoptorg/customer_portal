@@ -50,7 +50,7 @@ Route::middleware('language')->group(function () {
 
     // Login posted from the registration site. Outside `guest` on purpose: an already logged-in
     // user is logged out and the new customer still lands on their invoice. CSRF-exempt (see VerifyCsrfToken).
-    Route::post('/cudlogin', [AuthenticationController::class, 'cudlogin'])->middleware('web');
+    Route::post('/signup-login', [AuthenticationController::class, 'signupLogin'])->middleware('web');
 
     /**
      * Authenticated routes.

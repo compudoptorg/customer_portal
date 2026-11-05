@@ -14,6 +14,6 @@ class VerifyCsrfToken extends Middleware
     protected $except = [
         // The registration site (sonar-registration) auto-submits a login form here from another domain,
         // so it cannot carry our CSRF token. The handler only ever redirects to fixed portal pages.
-        'cudlogin',
+        'signup-login',
     ];
 }

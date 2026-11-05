@@ -78,11 +78,12 @@ class AuthenticationController extends Controller
      * Only two destinations are possible: the payment page for a numeric invoice ID, or the billing overview.
      * Nothing from the request is ever used as a redirect URL.
      *
-     * Pending Payment accounts must be able to log in for this flow to work. Whether they can is decided
-     * by Sonar itself (the framework just POSTs to the v1 customer_portal/auth endpoint and applies no
-     * status check of its own), so it has to be confirmed against a real Sonar instance.
+     * New customers log in here while their account is still in Sonar's non-activating
+     * "WaitingonFirstPayment" status. Sonar allows that (confirmed by hand on live Sonar); the framework
+     * applies no status check of its own. Staff switch the account to Active in Sonar after payment;
+     * the portal never changes account status.
      */
-    public function cudlogin(Request $request): RedirectResponse
+    public function signupLogin(Request $request): RedirectResponse
     {
         $username = $request->input('username');
         $password = $request->input('password');
@@ -111,7 +112,7 @@ class AuthenticationController extends Controller
     }
 
     /**
-     * Shared login logic for the login form and /cudlogin: throttle, authenticate against Sonar,
+     * Shared login logic for the login form and /signup-login: throttle, authenticate against Sonar,
      * store the session and remember the user's language.
      *
      * @return string|null An error message, or null on success.

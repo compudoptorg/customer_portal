@@ -57,8 +57,6 @@ return [
     'autoPayYes' => 'Sí, habilitar pagos automáticos',
     'autoPayNo' => 'No, no habilitar pagos automáticos',
     'payInvoiceToActivate' => 'Pague la factura #:invoice para activar su servicio.',
-    'pendingPaymentNotice' => 'Su servicio comenzará una vez que se pague su primera factura.',
-    'payNow' => 'Pagar ahora',
     'addNewCard' => 'Agregar nueva tarjeta de crédito',
     'cardAdded' => 'Tarjeta agregada exitosamente.',
     'paymentToCompany' => 'Pago a :company_name',
