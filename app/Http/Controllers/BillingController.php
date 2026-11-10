@@ -630,13 +630,24 @@ class BillingController extends Controller
     }
 
     /**
-     * Get the invoice list for a user. This will only retrieve the last 100.
+     * Get the full invoice list for a user, sorted newest first.
+     *
+     * The Sonar API returns invoices oldest first, 100 per page, so every page is fetched
+     * and the result is sorted; otherwise new invoices never appear at the top of the list.
      */
     private function getInvoices(): mixed
     {
         if (!Cache::tags('billing.invoices')->has(get_user()->account_id)) {
             $invoicesToReturn = [];
-            $invoices = $this->accountBillingController->getInvoices(get_user()->account_id);
+            $invoices = [];
+            $maxPages = 50; // safety cap so a misbehaving API can't loop forever
+            for ($page = 1; $page <= $maxPages; $page++) {
+                $pageResults = $this->accountBillingController->getInvoices(get_user()->account_id, $page);
+                if (empty($pageResults)) {
+                    break;
+                }
+                array_push($invoices, ...$pageResults);
+            }
             foreach ($invoices as $invoice) {
                 //This check is here because this property did not exist prior to Sonar 0.6.6
                 if (property_exists($invoice, 'void')) {
@@ -647,6 +658,9 @@ class BillingController extends Controller
                     array_push($invoicesToReturn, $invoice);
                 }
             }
+            usort($invoicesToReturn, function ($a, $b) {
+                return [strtotime($b->date), $b->id] <=> [strtotime($a->date), $a->id];
+            });
             Cache::tags('billing.invoices')->put(
                 get_user()->account_id,
                 $invoicesToReturn,
