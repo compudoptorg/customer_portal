@@ -77,6 +77,10 @@ class AuthenticationController extends Controller
 
         $this->resetThrottleValue('login', $this->generateLoginThrottleHash($request));
 
+        // Start each login with fresh billing data so invoices created since the last visit show up
+        // immediately instead of waiting out the cache.
+        (new BillingController())->clearBillingCache();
+
         $usernameLanguage = UsernameLanguage::firstOrNew(['username' => $request->input('username')]);
         $usernameLanguage->language = $request->input('language');
         $usernameLanguage->save();
