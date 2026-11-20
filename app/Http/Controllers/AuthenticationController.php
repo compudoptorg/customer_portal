@@ -56,36 +56,98 @@ class AuthenticationController extends Controller
      */
     public function authenticate(AuthenticationRequest $request): RedirectResponse
     {
-        if ($this->getThrottleValue('login', $this->generateLoginThrottleHash($request)) > 10) {
-            return redirect()->back()->withErrors(utrans('errors.tooManyFailedAuthenticationAttempts', [], $request));
+        $error = $this->attemptLogin(
+            $request,
+            $request->input('username'),
+            $request->input('password'),
+            $request->input('language')
+        );
+        if ($error !== null) {
+            return redirect()->back()->withErrors($error);
         }
-        $accountAuthenticationController = new AccountAuthenticationController();
+
+        return redirect()->action([\App\Http\Controllers\BillingController::class, 'index']);
+    }
+
+    /**
+     * Log in from the registration site (sonar-registration) and send the customer to their new invoice.
+     *
+     * The registration site auto-submits a cross-site form here, so this route is exempt from CSRF
+     * (see VerifyCsrfToken) and sits outside the `guest` middleware: whoever was logged in before is logged out.
+     *
+     * Only two destinations are possible: the payment page for a numeric invoice ID, or the billing overview.
+     * Nothing from the request is ever used as a redirect URL.
+     *
+     * New customers log in here while their account is still in Sonar's non-activating
+     * "WaitingonFirstPayment" status. Sonar allows that (confirmed by hand on live Sonar); the framework
+     * applies no status check of its own. Staff switch the account to Active in Sonar after payment;
+     * the portal never changes account status.
+     */
+    public function signupLogin(Request $request): RedirectResponse
+    {
+        $username = $request->input('username');
+        $password = $request->input('password');
+        $language = in_array($request->input('language'), ['en', 'es', 'fr'], true) ? $request->input('language') : 'en';
+
+        if (!is_string($username) || $username === '' || !is_string($password) || $password === '') {
+            return redirect('/')->withErrors(utrans('errors.loginFailed', [], $request));
+        }
+
+        if ($request->session()->get('authenticated') === true) {
+            $request->session()->forget(['authenticated', 'user']);
+        }
+        $request->session()->regenerate();
+
+        $error = $this->attemptLogin($request, $username, $password, $language);
+        if ($error !== null) {
+            return redirect('/')->withErrors($error);
+        }
+
+        $invoice = $request->input('invoice');
+        if (is_string($invoice) && preg_match('/^[1-9][0-9]{0,17}$/', $invoice)) {
+            return redirect()->action([BillingController::class, 'makePayment'], ['invoice' => (int) $invoice]);
+        }
+
+        return redirect()->action([BillingController::class, 'index']);
+    }
+
+    /**
+     * Shared login logic for the login form and /signup-login: throttle, authenticate against Sonar,
+     * store the session and remember the user's language.
+     *
+     * @return string|null An error message, or null on success.
+     */
+    private function attemptLogin(Request $request, string $username, string $password, ?string $language): ?string
+    {
+        $throttleHash = $this->generateLoginThrottleHash($request, $username);
+        if ($this->getThrottleValue('login', $throttleHash) > 10) {
+            return utrans('errors.tooManyFailedAuthenticationAttempts', [], $request);
+        }
+
+        $accountAuthenticationController = app(AccountAuthenticationController::class);
         try {
-            $result = $accountAuthenticationController->authenticateUser(
-                $request->input('username'),
-                $request->input('password')
-            );
+            $result = $accountAuthenticationController->authenticateUser($username, $password);
             $request->session()->put('authenticated', true);
             $request->session()->put('user', $result);
         } catch (AuthenticationException $e) {
-            $this->incrementThrottleValue('login', $this->generateLoginThrottleHash($request));
+            $this->incrementThrottleValue('login', $throttleHash);
             $request->session()->forget('authenticated');
             $request->session()->forget('user');
 
-            return redirect()->back()->withErrors(utrans('errors.loginFailed', [], $request));
+            return utrans('errors.loginFailed', [], $request);
         }
 
-        $this->resetThrottleValue('login', $this->generateLoginThrottleHash($request));
+        $this->resetThrottleValue('login', $throttleHash);
 
         // Start each login with fresh billing data so invoices created since the last visit show up
         // immediately instead of waiting out the cache.
         (new BillingController())->clearBillingCache();
 
-        $usernameLanguage = UsernameLanguage::firstOrNew(['username' => $request->input('username')]);
-        $usernameLanguage->language = $request->input('language');
+        $usernameLanguage = UsernameLanguage::firstOrNew(['username' => $username]);
+        $usernameLanguage->language = $language;
         $usernameLanguage->save();
 
-        return redirect()->action([\App\Http\Controllers\BillingController::class, 'index']);
+        return null;
     }
 
     /**
@@ -393,8 +455,8 @@ class AuthenticationController extends Controller
      * Login throttling functions
      */
 
-    private function generateLoginThrottleHash(AuthenticationRequest $request): string
+    private function generateLoginThrottleHash(Request $request, string $username): string
     {
-        return hash('sha256', $request->input('username').'_'.$request->getClientIp());
+        return hash('sha256', $username.'_'.$request->getClientIp());
     }
 }

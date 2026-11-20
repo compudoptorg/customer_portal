@@ -10,8 +10,8 @@ $(document).ready(function(){
         updateSubdivisions();
     });
 
-    // Initially hide the table and show the "show-text"
-    $('.invoicesTable').hide();
+    // Initially hide the table and show the "show-text" (unless an invoice is highlighted)
+    $('.invoicesTable').not('.expanded').hide();
 
     // Click to toggle the table
     $("#toggleInvoices").click(function(){

@@ -57,6 +57,7 @@ return [
     'autoPaySelect' => 'Select an option',
     'autoPayYes' => 'Yes, enable automatic payments',
     'autoPayNo' => 'No, do not enable automatic payments',
+    'payInvoiceToActivate' => 'Pay invoice #:invoice to activate your service.',
     'addNewCard' => 'Add new credit card',
     'cardAdded' => 'Card added successfully.',
     'paymentToCompany' => 'Payment to :company_name',

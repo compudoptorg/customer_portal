@@ -15,6 +15,7 @@ use Carbon\Carbon;
 use Exception;
 use Illuminate\Contracts\View\Factory;
 use Illuminate\Http\RedirectResponse;
+use Illuminate\Http\Request;
 use Illuminate\Http\Response;
 use Illuminate\Pagination\LengthAwarePaginator;
 use Illuminate\Support\Collection;
@@ -133,12 +134,15 @@ class BillingController extends Controller
     /**
      * Make payment page
      */
-    public function makePayment(): Factory|View|RedirectResponse
+    public function makePayment(Request $request): Factory|View|RedirectResponse
     {
         $billingDetails = $this->getAccountBillingDetails();
         $paymentMethods = $this->generatePaymentMethodListForPaymentPage();
         if (count($paymentMethods) == 0) {
-            return redirect()->back()->withErrors(utrans('errors.addAPaymentMethod'));
+            // Not redirect()->back(): after /signup-login, "back" is the login page.
+            return redirect()
+                ->action([BillingController::class, 'index'])
+                ->withErrors(utrans('errors.addAPaymentMethod'));
         }
 
         $systemSettings = SystemSetting::first();
@@ -161,6 +165,11 @@ class BillingController extends Controller
         $invoices = $this->getOutstandingAccountInvoices();
         $enabledPrimaryCreditCardProcessor = $this->accountController->getEnabledCreditCardProcessor(get_user()->account_id)[0] ?? null;
 
+        // ?invoice=ID (from /signup-login): highlight it and pre-fill its amount, but only if it is one of
+        // this account's outstanding invoices. Anything else is silently ignored.
+        $highlightInvoice = self::findOutstandingInvoice($invoices, $request->query('invoice'));
+        $prefillAmount = $highlightInvoice !== null ? $highlightInvoice->remaining_due : $billingDetails->balance_due;
+
         if (config('customer_portal.stripe_enabled') == 1) {
             $stripe = new PortalStripe();
             $secret = $stripe->setupIntent();
@@ -176,7 +185,9 @@ class BillingController extends Controller
                     'additionalPaymentInformation',
                     'invoices',
                     'enabledPrimaryCreditCardProcessor',
-                    'dateToday'
+                    'dateToday',
+                    'highlightInvoice',
+                    'prefillAmount'
                 )
             );
         }
@@ -187,8 +198,32 @@ class BillingController extends Controller
             'additionalPaymentInformation',
             'invoices',
             'enabledPrimaryCreditCardProcessor',
-            'dateToday'
+            'dateToday',
+            'highlightInvoice',
+            'prefillAmount'
         ));
+    }
+
+    /**
+     * Find an invoice by a user-supplied ID among the account's outstanding invoices.
+     *
+     * @param iterable $outstandingInvoices Outstanding invoices of the logged-in account.
+     * @param mixed $invoiceId Raw request value.
+     * @return object|null The invoice, or null if the ID is invalid, foreign, paid or unknown.
+     */
+    public static function findOutstandingInvoice($outstandingInvoices, $invoiceId): ?object
+    {
+        if (!is_string($invoiceId) || !preg_match('/^[1-9][0-9]{0,17}$/', $invoiceId) || !is_iterable($outstandingInvoices)) {
+            return null;
+        }
+
+        foreach ($outstandingInvoices as $invoice) {
+            if (is_object($invoice) && isset($invoice->id) && (string) $invoice->id === $invoiceId) {
+                return $invoice;
+            }
+        }
+
+        return null;
     }
 
     /**

@@ -56,6 +56,7 @@ return [
     'autoPaySelect' => 'Sélectionnez une option',
     'autoPayYes' => 'Oui, activer les paiements automatiques',
     'autoPayNo' => 'Non, ne pas activer les paiements automatiques',
+    'payInvoiceToActivate' => 'Payez la facture n° :invoice pour activer votre service.',
     'addNewCard' => 'Entrer une nouvelle carte de crédit',
     'cardAdded' => 'Carte entrée avec succès.',
     'paymentToCompany' => 'Paiement à :nom de compagnie',

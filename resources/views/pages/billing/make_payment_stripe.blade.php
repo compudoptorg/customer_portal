@@ -48,6 +48,12 @@
             </div>
          </div>
 
+         @if($highlightInvoice)
+         <div class="alert alert-warning" role="alert" id="highlightInvoiceNotice">
+            {{ utrans("billing.payInvoiceToActivate", ["invoice" => $highlightInvoice->id]) }}
+         </div>
+         @endif
+
          {!! Form::open(['action' => '\App\Http\Controllers\BillingController@submitTokenizedPayment', 'id' => 'paymentForm', 'class' => 'mb-4', 'autocomplete' => 'on']) !!}
          <div class="row mt-4">
          <div class="col-12">
@@ -145,7 +151,7 @@
                   <label>
                      {{utrans("billing.amountToPay")}} {{ isset($additionalPaymentInformation['transaction_currency']) ? '(' . $additionalPaymentInformation['transaction_currency'] . ')' : '' }}
                   </label>
-                  {!! Form::number("amount",number_format($billingDetails->balance_due,2,".",""),['id' => 'amount', 'class' => 'form-control', 'step' => 'any', 'required' => true]) !!}
+                  {!! Form::number("amount",number_format($prefillAmount,2,".",""),['id' => 'amount', 'class' => 'form-control', 'step' => 'any', 'required' => true]) !!}
                </div>
             </div>
             <div class="col-auto new_card">
